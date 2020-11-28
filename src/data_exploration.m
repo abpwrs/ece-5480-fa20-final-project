@@ -8,8 +8,8 @@ src_dir = pwd();
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
 I = imread(strcat(data_folder, 'PandD.tif'));
-
 figure(1);imshow(I,[]);
+I = rgb2hsv(I);
 
 %% Overview of Image features
 figure(2);
