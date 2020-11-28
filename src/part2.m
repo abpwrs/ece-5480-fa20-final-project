@@ -11,6 +11,12 @@ filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
 I = imread(strcat(data_folder, '0.jpg'));
 
+
+%%
+I_histeq = histeq(I);
+figure(1);imshow(I,[]);
+figure(2);imshow(I_histeq,[]);
+
 %% median filtering 
 % this takes awhile
 % R = I(:, :, 1); 
@@ -60,7 +66,7 @@ max_radius = 700; % increase this due to increased resolution and quarters
 % filling fills in the whole paper...
 % NOTE: missing one coin on image zero
 
-% detection method
+% detection method -- TODO: fix detection so all coins are captured
 [centers, radii, metric] = imfindcircles(i_dil, [min_radius max_radius]);
 %% 
 figure(1);imshow(I,[]);
@@ -69,7 +75,7 @@ viscircles(centers, radii, 'EdgeColor','b');
 %% Segmentation reconstruction from centers and radii
 % based on https://www.mathworks.com/matlabcentral/fileexchange/47905-createcirclesmask-m
 
-[x_size, y_size] = size(i_open);
+[x_size, y_size] = size(i_dil);
 n_coins = numel(radii);
 
 xc = centers(:,1);
@@ -82,7 +88,7 @@ for ii = 1:numel(radii)
     % coin mask
 	mask(:, :, ii) = hypot(xx - xc(ii), yy - yc(ii)) <= radii(ii);
     % label map
-    tmp_mask = uint8(ones(size(i_open))) * ii;
+    tmp_mask = uint8(ones(size(i_dil))) * ii;
     tmp_mask = tmp_mask .* uint8(mask(:, :, ii));
     label_map = uint8(label_map + tmp_mask);
 end
@@ -111,10 +117,27 @@ end
 %% radius hist
 figure(1000); histogram(radii,50)
 
+
+
+%% extract clustering features
+
+% 4D - [radius avg_red avg_green avg_blue]
+features = ones(n_coins,2);
+features(:,1) = radii;
+for coin_idx=1:n_coins
+    color_coin_mask = I_masked .* uint8(mask(:,:,coin_idx));
+    for channel_idx=1:1
+        channel = color_coin_mask(:,:,channel_idx);
+        channel_sum = sum(channel, 'all');
+        channel_elem_count = sum(uint8(mask(:,:,coin_idx)),'all');
+        features(coin_idx, channel_idx + 1) = (channel_sum / channel_elem_count)/256;
+    end
+end
+
 %% radii based classification using 1D kmeans
 
 k = 3; % 3 --> part2
-thresh_labels =  kmeans(radii, k);
+thresh_labels =  kmeans(features, k);
 
 class_1 = radii(thresh_labels==1);
 class_2 = radii(thresh_labels==2);
