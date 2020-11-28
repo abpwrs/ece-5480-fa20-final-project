@@ -11,7 +11,6 @@ filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
 I = imread(strcat(data_folder, '0.jpg'));
 
-
 %%
 I_histeq = histeq(I);
 figure(1);imshow(I,[]);
@@ -32,33 +31,37 @@ figure(2);imshow(I_histeq,[]);
 
 
 %% morphological processing
-morph_data = false(size(I));
-
-disk5 = strel('disk', 5);
-disk10 = strel('disk', 10);
-disk15 = strel('disk', 15);
-
-for channel=1:3
-    I_edge = edge(I(:,:,channel), 'sobel');
-    figure(200+channel); imshow(I_edge,[])
-    I_close = imclose(I_edge, disk10);
-    morph_data(:,:,channel)=I_close;
-    figure(300+channel); imshow(I_close,[])
-
-end
-
-intersected_edge_masks = morph_data(:, :, 1) & morph_data(:, :, 2) & morph_data(:, :, 3);
-figure(101);imshow(intersected_edge_masks,[]);
-i_dil = imdilate(intersected_edge_masks, disk10);
-figure(102);imshow(i_dil,[]);
-i_fil = imfill(i_dil, 'holes');
-figure(103);imshow(i_fill,[]);
-i_err = imerode(i_fil, disk10);
-figure(104);imshow(i_err,[]);
-i_open = imopen(i_err, disk15);
-figure(105);imshow(i_open,[]);
+% morph_data = false(size(I));
+% 
+% disk5 = strel('disk', 5);
+% disk10 = strel('disk', 10);
+% disk15 = strel('disk', 15);
+% 
+% for channel=1:3
+%     I_edge = edge(I(:,:,channel), 'sobel');
+%     figure(200+channel); imshow(I_edge,[])
+%     I_close = imclose(I_edge, disk10);
+%     morph_data(:,:,channel)=I_close;
+%     figure(300+channel); imshow(I_close,[])
+% 
+% end
+% 
+% intersected_edge_masks = morph_data(:, :, 1) & morph_data(:, :, 2) & morph_data(:, :, 3);
+% figure(101);imshow(intersected_edge_masks,[]);
+% i_dil = imdilate(intersected_edge_masks, disk10);
+% figure(102);imshow(i_dil,[]);
+% i_fil = imfill(i_dil, 'holes');
+% figure(103);imshow(i_fil,[]);
+% i_err = imerode(i_fil, disk10);
+% figure(104);imshow(i_err,[]);
+% i_open = imopen(i_err, disk15);
+% figure(105);imshow(i_open,[]);
 
 %% Hough Transform
+%% green channel coin mask
+I_bin = imbinarize(I(:,:,2));
+I_bin = imopen(I_bin,strel('disk',20));
+coin_mask = imclearborder(imcomplement(I_bin));
 min_radius = 30;
 max_radius = 700; % increase this due to increased resolution and quarters
 
@@ -67,7 +70,7 @@ max_radius = 700; % increase this due to increased resolution and quarters
 % NOTE: missing one coin on image zero
 
 % detection method -- TODO: fix detection so all coins are captured
-[centers, radii, metric] = imfindcircles(i_dil, [min_radius max_radius]);
+[centers, radii, metric] = imfindcircles(coin_mask, [min_radius max_radius]);
 %% 
 figure(1);imshow(I,[]);
 viscircles(centers, radii, 'EdgeColor','b');
@@ -75,7 +78,7 @@ viscircles(centers, radii, 'EdgeColor','b');
 %% Segmentation reconstruction from centers and radii
 % based on https://www.mathworks.com/matlabcentral/fileexchange/47905-createcirclesmask-m
 
-[x_size, y_size] = size(i_dil);
+[x_size, y_size] = size(coin_mask);
 n_coins = numel(radii);
 
 xc = centers(:,1);
@@ -88,7 +91,7 @@ for ii = 1:numel(radii)
     % coin mask
 	mask(:, :, ii) = hypot(xx - xc(ii), yy - yc(ii)) <= radii(ii);
     % label map
-    tmp_mask = uint8(ones(size(i_dil))) * ii;
+    tmp_mask = uint8(ones(size(coin_mask))) * ii;
     tmp_mask = tmp_mask .* uint8(mask(:, :, ii));
     label_map = uint8(label_map + tmp_mask);
 end
@@ -137,7 +140,7 @@ end
 %% radii based classification using 1D kmeans
 
 k = 3; % 3 --> part2
-thresh_labels =  kmeans(features, k);
+thresh_labels =  kmeans(radii, k);
 
 class_1 = radii(thresh_labels==1);
 class_2 = radii(thresh_labels==2);
