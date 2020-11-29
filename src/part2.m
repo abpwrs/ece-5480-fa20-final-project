@@ -16,6 +16,39 @@ I_histeq = histeq(I);
 figure(1);imshow(I,[]);
 figure(2);imshow(I_histeq,[]);
 
+%%
+I_histeq = adapthisteq(rgb2gray(I));
+figure(1);imshow(I,[]);
+figure(2);imshow(I_histeq,[]);
+
+%% fix lighting
+IInv = imcomplement(I);
+
+IInv_reduced = imreducehaze(IInv, 'Method','approx','ContrastEnhancement','boost');
+I_reinv = imcomplement(IInv_reduced);
+figure, montage({I, I_reinv});
+
+%% median filter  l channel in lab color format
+I_lab = rgb2lab(I);
+L = I_lab(:,:,1);
+A = I_lab(:,:,2);
+B = I_lab(:,:,3);
+k = 20;
+L_median = medfilt2(L, [k k]);
+a_cont = A;%histeq(A);
+b_cont = B;%histeq(B);
+I_lab(:,:,1) = L_median;
+I_lab(:,:,2) = a_cont;
+I_lab(:,:,3) = b_cont;
+RGB_reco = lab2rgb(I_lab);
+figure(1); imshow(I,[]);
+figure(2); imshow(RGB_reco,[]);
+
+%%
+I_histeq = histeq(I_reinv);
+figure(1);imshow(I,[]);
+figure(2);imshow(I_histeq,[]);
+
 %% median filtering 
 % this takes awhile
 % R = I(:, :, 1); 
@@ -76,9 +109,12 @@ coin_mask = bwareafilt(I_morph, [c2_LT c2_UT]);
 
 %% Hough Transform
 %% green channel coin mask
-I_bin = imbinarize(I(:,:,2));
+I_bin = imbinarize(RGB_reco(:,:,2));
 I_bin = imopen(I_bin,strel('disk',20));
 % coin_mask = imclearborder(imcomplement(I_bin));
+coin_mask = imclearborder(imcomplement(I_bin));
+figure(1);imshow(coin_mask)
+%% Hough Transform
 min_radius = 30;
 max_radius = 2000; % increase this due to increased resolution and quarters
 
@@ -130,8 +166,10 @@ figure(3); imshow(label_map,[]);
 %% more visualizations of segmentation
 BW_coin_mask = label_map > 0;
 figure(4);imshow(BW_coin_mask,[]);
-I_masked = I .* uint8(BW_coin_mask);
-figure(5); imshow(I_masked,[]);
+
+
+%%
+
 
 %% plot channel histograms
 figure(6);
@@ -145,65 +183,118 @@ end
 %% radius hist
 figure(1000); histogram(radii,50)
 
+%% radii based classification using 1D kmeans
+
+k = 2; % 3 --> part2
+radii_based_labels =  kmeans(radii, k);
+
+mu_1 = mean(radii(radii_based_labels==1));
+mu_2 = mean(radii(radii_based_labels==2));
+
+if mu_1 > mu_2
+    quarter_radii = radii(radii_based_labels==1,:);
+    quarter_centers = centers(radii_based_labels==1,:);
+    quarter_mu = mu_1;
+
+    other_radii = radii(radii_based_labels==2,:);
+    other_centers = centers(radii_based_labels==2,:);
+    
+    other_mask = mask(:,:,radii_based_labels==2);
+else
+    quarter_radii = radii(radii_based_labels==2,:);
+    quarter_centers = centers(radii_based_labels==2,:);
+    quarter_mu = mu_1;
+
+    other_radii = radii(radii_based_labels==1,:);
+    other_centers = centers(radii_based_labels==1,:);
+
+    other_mask = mask(:,:,radii_based_labels==1);
+
+end
 
 
-%% extract clustering features
+quarter_name=sprintf('Quarters');
+other_name=sprintf('Other');
 
-% 4D - [radius avg_red avg_green avg_blue]
-features = ones(n_coins,2);
-features(:,1) = radii;
+figure(8); imshow(I,[]);  
+viscircles(quarter_centers, quarter_radii,'Color','b'); 
+viscircles(other_centers, other_radii,'Color', 'r'); 
+title('Class Labeled Image');
+text(10,30, quarter_name, 'Color', 'b', 'FontSize', 15, 'FontWeight', 'bold');
+text(10,80, other_name, 'Color', 'r', 'FontSize', 15, 'FontWeight', 'bold');
+
+
+%% hist eq I_masked to improve feature extraction
+% I_masked = I .* double(BW_coin_mask);
+% figure(5); imshow(I_masked,[]);
+% I_masked_histeq = zeros(size(I_masked));
+% for c=1:3
+%     I_masked_histeq(:,:,c) = adapthisteq(I_masked(:,:,c));
+%     figure(100+c);imshow(I_masked_histeq(:,:,c),[])
+% end
+% figure(7);imshow(uint8(I_masked_histeq), [])
+
+%% generate 6D colour clustering features
+
+
+
+I_hsv = rgb2hsv(I);
+n_coins = size(other_mask,3);
+features = ones(n_coins,7);
+features(:,7) = other_radii;
 for coin_idx=1:n_coins
-    color_coin_mask = I_masked .* uint8(mask(:,:,coin_idx));
-    for channel_idx=1:1
+    % rgb features
+    color_coin_mask = I .* uint8(other_mask(:,:,coin_idx));
+    for channel_idx=1:3
         channel = color_coin_mask(:,:,channel_idx);
         channel_sum = sum(channel, 'all');
-        channel_elem_count = sum(uint8(mask(:,:,coin_idx)),'all');
-        features(coin_idx, channel_idx + 1) = (channel_sum / channel_elem_count)/256;
+        channel_elem_count = sum(uint8(other_mask(:,:,coin_idx)),'all');
+        features(coin_idx, channel_idx) = (channel_sum / channel_elem_count)/256;
+    end
+    
+    % hsv features
+    color_coin_mask = I_hsv .* double(other_mask(:,:,coin_idx));
+    offset = 3;
+    for channel_idx=1:3
+        channel = color_coin_mask(:,:,channel_idx);
+        channel_sum = sum(channel, 'all');
+        channel_elem_count = sum(uint8(other_mask(:,:,coin_idx)),'all');
+        features(coin_idx, channel_idx+offset) = (channel_sum / channel_elem_count);
     end
 end
 
-%% radii based classification using 1D kmeans
 
-k = 3; % 3 --> part2
-thresh_labels =  kmeans(radii, k);
+%% color based classification using ?-D kmeans
 
-class_1 = radii(thresh_labels==1);
-class_2 = radii(thresh_labels==2);
-class_3 = radii(thresh_labels==3);
+k = 2; % 3 --> part2
+radii_based_labels =  kmeans(other_radii, k);
+
+class_1 = other_radii(radii_based_labels==1);
+class_2 = other_radii(radii_based_labels==2);
 
 mu_1 = mean(class_1);
 mu_2 = mean(class_2);
-mu_3 = mean(class_3);
 
-centers_1 = centers(thresh_labels==1,:);
-centers_2 = centers(thresh_labels==2,:);
-centers_3 = centers(thresh_labels==3,:);
+centers_1 = other_centers(radii_based_labels==1,:);
+centers_2 = other_centers(radii_based_labels==2,:);
 
 class_image = zeros(size(label_map));
 
-for i=1:size(mask,3)
-   coin_mask = mask(:,:,i);
-   coin_mask_labeled = coin_mask*(thresh_labels(i));
-   class_image = class_image+coin_mask_labeled;
-end
 
-class1_name = get_class_name_mu1_k3(mu_1,mu_2, mu_3);
-class2_name = get_class_name_mu1_k3(mu_2,mu_3, mu_1);
-class3_name = get_class_name_mu1_k3(mu_3,mu_1, mu_2);
+class1_name = get_class_name_mu1_k3(mu_1,mu_2, quarter_mu);
+class2_name = get_class_name_mu1_k3(mu_2,quarter_mu, mu_1);
 
-shaded_label_img = labeloverlay(I,class_image);
-figure(7); 
-imshow(shaded_label_img, []);
+
 
 figure(8); imshow(I,[]);  
 viscircles(centers_1, class_1,'Color','b'); 
 viscircles(centers_2, class_2,'Color', 'r'); 
-viscircles(centers_3, class_3,'Color', 'g'); 
+% viscircles(centers_3, class_3,'Color', 'g'); 
 
 title('Class Labeled Image');
 text(10,30, class1_name, 'Color', 'b', 'FontSize', 15, 'FontWeight', 'bold');
 text(10,80, class2_name, 'Color', 'r', 'FontSize', 15, 'FontWeight', 'bold');
-text(10,130, class3_name, 'Color', 'g', 'FontSize', 15, 'FontWeight', 'bold');
+% text(10,130, class3_name, 'Color', 'g', 'FontSize', 15, 'FontWeight', 'bold');
 
 
 
