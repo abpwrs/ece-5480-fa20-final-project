@@ -9,7 +9,7 @@
 src_dir = pwd();
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
-I = imread(strcat(data_folder, '0.jpg'));
+I = imread(strcat(data_folder, '2.jpg'));
 
 %%
 I_histeq = histeq(I);
@@ -57,20 +57,45 @@ figure(2);imshow(I_histeq,[]);
 % i_open = imopen(i_err, disk15);
 % figure(105);imshow(i_open,[]);
 
+%% Noisy Background Removal 
+I_hsv = rgb2hsv(I);
+I_gray = rgb2gray(I);
+I_hue = imbinarize(I_hsv(:,:,1));
+I_filt = medfilt2(I_gray, [250 250]);
+I_gray(I_hue) = I_filt(I_hue);
+I_bin = imclearborder(imcomplement(imbinarize(I_gray)));
+I_morph = imfill(I_bin, 'holes');
+obj_areas = struct2array(regionprops(I_morph, 'area'))';
+obj_classes = kmeans(obj_areas,2);
+c2_mean = mean(obj_areas(obj_classes==2));
+c2_std = std(obj_areas(obj_classes==2));
+c2_UT = c2_mean + 2*c2_std;
+c2_LT = c2_mean - 2*c2_std;
+
+coin_mask = bwareafilt(I_morph, [c2_LT c2_UT]);
+
 %% Hough Transform
 %% green channel coin mask
 I_bin = imbinarize(I(:,:,2));
 I_bin = imopen(I_bin,strel('disk',20));
-coin_mask = imclearborder(imcomplement(I_bin));
+% coin_mask = imclearborder(imcomplement(I_bin));
 min_radius = 30;
-max_radius = 700; % increase this due to increased resolution and quarters
+max_radius = 2000; % increase this due to increased resolution and quarters
 
 % skipping the fill holes operation and just using dilated image
 % filling fills in the whole paper...
 % NOTE: missing one coin on image zero
 
 % detection method -- TODO: fix detection so all coins are captured
-[centers, radii, metric] = imfindcircles(coin_mask, [min_radius max_radius]);
+[centers, radii, metric] = imfindcircles(coin_mask, [min_radius max_radius], 'ObjectPolarity','dark');
+
+%%
+% coin_mask = activecontour(I_gray, coin_mask);
+% stats = regionprops('table',coin_mask,'Centroid','EquivDiameter','Eccentricity');
+% stats( stats.Eccentricity == 0 | stats.Eccentricity > 0.5 , : ) = [];
+% 
+% centers = stats.Centroid;
+% radii = stats.EquivDiameter/2;
 %% 
 figure(1);imshow(I,[]);
 viscircles(centers, radii, 'EdgeColor','b');
