@@ -9,14 +9,43 @@
 src_dir = pwd();
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
-I = imread(strcat(data_folder, '0.jpg'));
+I = imread(strcat(data_folder, '2.jpg'));
 
 %%
 I_histeq = histeq(I);
 figure(1);imshow(I,[]);
 figure(2);imshow(I_histeq,[]);
+
 %%
 I_histeq = adapthisteq(rgb2gray(I));
+figure(1);imshow(I,[]);
+figure(2);imshow(I_histeq,[]);
+
+%% fix lighting
+IInv = imcomplement(I);
+
+IInv_reduced = imreducehaze(IInv, 'Method','approx','ContrastEnhancement','boost');
+I_reinv = imcomplement(IInv_reduced);
+figure, montage({I, I_reinv});
+
+%% median filter  l channel in lab color format
+I_lab = rgb2lab(I);
+L = I_lab(:,:,1);
+A = I_lab(:,:,2);
+B = I_lab(:,:,3);
+k = 20;
+L_median = medfilt2(L, [k k]);
+a_cont = A;%histeq(A);
+b_cont = B;%histeq(B);
+I_lab(:,:,1) = L_median;
+I_lab(:,:,2) = a_cont;
+I_lab(:,:,3) = b_cont;
+RGB_reco = lab2rgb(I_lab);
+figure(1); imshow(I,[]);
+figure(2); imshow(RGB_reco,[]);
+
+%%
+I_histeq = histeq(I_reinv);
 figure(1);imshow(I,[]);
 figure(2);imshow(I_histeq,[]);
 
@@ -62,7 +91,7 @@ figure(2);imshow(I_histeq,[]);
 % figure(105);imshow(i_open,[]);
 
 %% green channel coin mask
-I_bin = imbinarize(I(:,:,2));
+I_bin = imbinarize(RGB_reco(:,:,2));
 I_bin = imopen(I_bin,strel('disk',20));
 coin_mask = imclearborder(imcomplement(I_bin));
 figure(1);imshow(coin_mask)
