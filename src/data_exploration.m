@@ -7,12 +7,20 @@
 src_dir = pwd();
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
-I = imread(strcat(data_folder, 'PandD.tif'));
+I = imread(strcat(data_folder, '2.jpg'));
 
 figure(1);imshow(I,[]);
 
 %% Overview of Image features
 figure(2);
+
+I_hsv = rgb2hsv(I);
+I_gray = rgb2gray(I);
+I_hue = imbinarize(I_hsv(:,:,1));
+I_filt = medfilt2(I_gray, [250 250]);
+
+I_gray(I_hue) = I_filt(I_hue);
+
 R = I(:,:,1);
 G = I(:,:,2);
 B = I(:,:,3);
@@ -58,6 +66,8 @@ title('Green Channel Hist');
 subplot(3,3,9);
 imhist(B);
 title('Blue Channel Hist');
+
+figure(202), imshow(I_gray,[]); title('Filtered Coin Image');
 
 %% median filtering
 filter_mag = 30;
