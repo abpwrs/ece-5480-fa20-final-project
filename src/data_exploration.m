@@ -10,6 +10,7 @@ data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
 I = imread(strcat(data_folder, '2.jpg'));
 
 figure(1);imshow(I,[]);
+I = rgb2hsv(I);
 
 %% Overview of Image features
 figure(2);
