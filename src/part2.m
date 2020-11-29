@@ -9,7 +9,7 @@
 src_dir = pwd();
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
-I = imread(strcat(data_folder, '3.jpg'));
+I = imread(strcat(data_folder, '1-2.jpg'));
 
 %%
 I_histeq = histeq(I);
@@ -112,7 +112,7 @@ coin_mask = bwareafilt(I_morph, [c2_LT c2_UT]);
 I_bin = imbinarize(RGB_reco(:,:,2));
 I_bin = imopen(I_bin,strel('disk',20));
 % coin_mask = imclearborder(imcomplement(I_bin));
-coin_mask = imclearborder(imcomplement(I_bin));
+% coin_mask = imclearborder(imcomplement(I_bin));
 figure(1);imshow(coin_mask)
 %% Hough Transform
 min_radius = 30;
@@ -172,13 +172,13 @@ figure(4);imshow(BW_coin_mask,[]);
 
 
 %% plot channel histograms
-figure(6);
-for channel=1:3 
-    subplot(3,1,channel)
-    I_channel = double(I_masked(:,:,channel));
-    idx = I_channel > 0;
-    histogram(I_channel(idx));
-end
+% figure(6);
+% for channel=1:3 
+%     subplot(3,1,channel)
+%     I_channel = double(I_masked(:,:,channel));
+%     idx = I_channel > 0;
+%     histogram(I_channel(idx));
+% end
 
 %% radius hist
 figure(1000); histogram(radii,50)
@@ -212,11 +212,10 @@ else
 
 end
 
-
 quarter_name=sprintf('Quarters');
 other_name=sprintf('Other');
 
-figure(8); imshow(I,[]);  
+figure(9); imshow(I,[]);  
 viscircles(quarter_centers, quarter_radii,'Color','b'); 
 viscircles(other_centers, other_radii,'Color', 'r'); 
 title('Class Labeled Image');
@@ -235,7 +234,6 @@ text(10,80, other_name, 'Color', 'r', 'FontSize', 15, 'FontWeight', 'bold');
 % figure(7);imshow(uint8(I_masked_histeq), [])
 
 %% generate 6D colour clustering features
-
 
 
 I_hsv = rgb2hsv(I);
@@ -286,7 +284,7 @@ class2_name = get_class_name_mu1_k3(mu_2,quarter_mu, mu_1);
 
 
 
-figure(8); imshow(I,[]);  
+figure(10); imshow(I,[]);  
 viscircles(centers_1, class_1,'Color','b'); 
 viscircles(centers_2, class_2,'Color', 'r'); 
 % viscircles(centers_3, class_3,'Color', 'g'); 
