@@ -9,7 +9,7 @@
 src_dir = pwd();
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
-I = imread(strcat(data_folder, '2.jpg'));
+I = imread(strcat(data_folder, '3.jpg'));
 
 %%
 I_histeq = histeq(I);
@@ -69,7 +69,7 @@ obj_areas = struct2array(regionprops(I_morph, 'area'))';
 obj_classes = kmeans(obj_areas,2);
 c2_mean = mean(obj_areas(obj_classes==2));
 c2_std = std(obj_areas(obj_classes==2));
-c2_UT = c2_mean + 2*c2_std;
+c2_UT = c2_mean + 3*c2_std;
 c2_LT = c2_mean - 2*c2_std;
 
 coin_mask = bwareafilt(I_morph, [c2_LT c2_UT]);
@@ -87,7 +87,7 @@ max_radius = 2000; % increase this due to increased resolution and quarters
 % NOTE: missing one coin on image zero
 
 % detection method -- TODO: fix detection so all coins are captured
-[centers, radii, metric] = imfindcircles(coin_mask, [min_radius max_radius], 'ObjectPolarity','dark');
+[centers, radii, metric] = imfindcircles(coin_mask, [min_radius max_radius], 'ObjectPolarity','bright','Sensitivity',0.9);
 
 %%
 % coin_mask = activecontour(I_gray, coin_mask);
