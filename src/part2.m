@@ -9,7 +9,7 @@
 src_dir = pwd();
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
-I = imread(strcat(data_folder, '1-2.jpg'));
+I = imread(strcat(data_folder, '1-complex_res-05.jpg'));
 
 %%
 I_histeq = histeq(I);
@@ -115,7 +115,7 @@ I_bin = imopen(I_bin,strel('disk',20));
 % coin_mask = imclearborder(imcomplement(I_bin));
 figure(1);imshow(coin_mask)
 %% Hough Transform
-min_radius = 30;
+min_radius = 10;
 max_radius = 2000; % increase this due to increased resolution and quarters
 
 % skipping the fill holes operation and just using dilated image
@@ -233,7 +233,7 @@ text(10,80, other_name, 'Color', 'r', 'FontSize', 15, 'FontWeight', 'bold');
 % end
 % figure(7);imshow(uint8(I_masked_histeq), [])
 
-%% generate 6D colour clustering features
+%% generate 7D colour clustering features
 
 
 I_hsv = rgb2hsv(I);
@@ -265,7 +265,7 @@ end
 %% color based classification using ?-D kmeans
 
 k = 2; % 3 --> part2
-radii_based_labels =  kmeans(other_radii, k);
+radii_based_labels =  kmeans(features, k);
 
 class_1 = other_radii(radii_based_labels==1);
 class_2 = other_radii(radii_based_labels==2);
@@ -293,6 +293,69 @@ title('Class Labeled Image');
 text(10,30, class1_name, 'Color', 'b', 'FontSize', 15, 'FontWeight', 'bold');
 text(10,80, class2_name, 'Color', 'r', 'FontSize', 15, 'FontWeight', 'bold');
 % text(10,130, class3_name, 'Color', 'g', 'FontSize', 15, 'FontWeight', 'bold');
+
+
+%% All in one 7D kmeans 
+
+
+I_hsv = rgb2hsv(I);
+n_coins = size(mask,3);
+features = ones(n_coins,7);
+features(:,7) = radii;
+for coin_idx=1:n_coins
+    % rgb features
+    color_coin_mask = I .* uint8(mask(:,:,coin_idx));
+    for channel_idx=1:3
+        channel = color_coin_mask(:,:,channel_idx);
+        channel_sum = sum(channel, 'all');
+        channel_elem_count = sum(uint8(mask(:,:,coin_idx)),'all');
+        features(coin_idx, channel_idx) = (channel_sum / channel_elem_count)/256;
+    end
+    
+    % hsv features
+    color_coin_mask = I_hsv .* double(mask(:,:,coin_idx));
+    offset = 3;
+    for channel_idx=1:3
+        channel = color_coin_mask(:,:,channel_idx);
+        channel_sum = sum(channel, 'all');
+        channel_elem_count = sum(uint8(mask(:,:,coin_idx)),'all');
+        features(coin_idx, channel_idx+offset) = (channel_sum / channel_elem_count);
+    end
+end
+
+
+
+
+k = 3; % 3 --> part2
+radii_based_labels =  kmeans(features, k);
+
+class_1 = radii(radii_based_labels==1);
+class_2 = radii(radii_based_labels==2);
+class_3 = radii(radii_based_labels==3);
+
+mu_1 = mean(class_1);
+mu_2 = mean(class_2);
+mu_3 = mean(class_3);
+
+centers_1 = centers(radii_based_labels==1,:);
+centers_2 = centers(radii_based_labels==2,:);
+centers_3 = centers(radii_based_labels==3,:);
+
+class1_name = get_class_name_mu1_k3(mu_1,mu_2,mu_3);
+class2_name = get_class_name_mu1_k3(mu_2,mu_3,mu_1);
+class3_name = get_class_name_mu1_k3(mu_3,mu_1, mu_2);
+
+
+
+figure(10); imshow(I,[]);  
+viscircles(centers_1, class_1,'Color','b'); 
+viscircles(centers_2, class_2,'Color', 'r'); 
+viscircles(centers_3, class_3,'Color', 'g'); 
+
+title('Class Labeled Image');
+text(10,30, class1_name, 'Color', 'b', 'FontSize', 15, 'FontWeight', 'bold');
+text(10,80, class2_name, 'Color', 'r', 'FontSize', 15, 'FontWeight', 'bold');
+text(10,130, class3_name, 'Color', 'g', 'FontSize', 15, 'FontWeight', 'bold');
 
 
 
