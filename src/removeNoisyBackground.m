@@ -8,6 +8,7 @@ function [coin_mask] = removeNoisyBackground(I)
     I_morph = imfill(I_bin, 'holes');
     obj_areas = struct2array(regionprops(I_morph, 'area'))';
     obj_classes = kmeans(obj_areas,2);
+ 
     c2_mean = mean(obj_areas(obj_classes==2));
     c2_std = std(obj_areas(obj_classes==2));
     c2_UT = c2_mean + 2*c2_std;

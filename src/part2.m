@@ -4,18 +4,25 @@
 
 %% Read in Coin Images
 src_dir = pwd();
+fname = '2-simple_res-05.jpg';
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
-I = imread(strcat(data_folder, '2-simple.jpg'));
+I = imread(strcat(data_folder, fname));
+is_complex = logical(numel(strfind(fname, 'complex')));
 
 %% Remove Noisy Background (Coin Mask Generation)
-coin_mask = removeNoisyBackground(I);
+if is_complex
+    coin_mask = generateCoinMaskComplex(I);
+else
+    coin_mask = generateCoinMaskSimple(I);
+end
+
 
 %% Hough Transform
 [min_radius, max_radius] = findRadiusBounds(coin_mask);
 
 % detection method 
-[centers, radii, metric] = imfindcircles(coin_mask, [min_radius max_radius], 'ObjectPolarity','bright','Sensitivity',0.9);
+[centers, radii, metric] = imfindcircles(coin_mask, [min_radius max_radius], 'ObjectPolarity','bright', 'Sensitivity', 0.9);
 
 % Display Detected Circles
 figure(2);imshow(I,[]);

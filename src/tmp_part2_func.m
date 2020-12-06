@@ -4,7 +4,14 @@ function [done] = tmp_part2_func(file_obj, data_folder, figure_dir)
     f1 = figure(1);imshow(I);
     saveas(f1, strcat(figure_dir, 'f1.png'));
     % Remove Noisy Background (Coin Mask Generation)
-    coin_mask = removeNoisyBackground(I);
+    is_complex = logical(numel(strfind(file_obj.name, 'complex')));
+
+    if is_complex
+        coin_mask = removeNoisyBackground(I);
+    else
+        coin_mask = generateCoinMaskSimple(I);
+    end
+
     
     f100 = figure(100);
     imshow(coin_mask);
@@ -14,7 +21,7 @@ function [done] = tmp_part2_func(file_obj, data_folder, figure_dir)
     [min_radius, max_radius] = findRadiusBounds(coin_mask);
 
     % detection method 
-    [centers, radii, ~] = imfindcircles(coin_mask, [min_radius max_radius], 'ObjectPolarity','bright','Sensitivity',0.9);
+    [centers, radii, ~] = imfindcircles(coin_mask, [min_radius max_radius], 'ObjectPolarity','bright', 'Sensitivity', 0.9);
 
     % Display Detected Circles
     f2 = figure(2);imshow(I,[]);

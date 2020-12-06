@@ -10,5 +10,6 @@ function [min_radius, max_radius] = findRadiusBounds(coin_mask)
 
     min_radius = floor(min(radii)-range_buffer);
     max_radius = ceil(max(radii)+range_buffer);
+
 end
 
