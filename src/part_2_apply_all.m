@@ -21,7 +21,7 @@ for file_index=1:length(files)
     end
     
     existing_figures = dir(strcat(figure_dir, '*.png'));
-    figures_exist = numel(existing_figures) == 6
+    figures_exist = numel(existing_figures) == 7
     if ~figures_exist
         try
             done = tmp_part2_func(file_obj, data_folder, figure_dir) ;

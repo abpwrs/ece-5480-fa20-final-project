@@ -5,6 +5,10 @@ function [done] = tmp_part2_func(file_obj, data_folder, figure_dir)
     saveas(f1, strcat(figure_dir, 'f1.png'));
     % Remove Noisy Background (Coin Mask Generation)
     coin_mask = removeNoisyBackground(I);
+    
+    f100 = figure(100);
+    imshow(coin_mask);
+    saveas(f100, strcat(figure_dir, 'f100.png'));
 
     % Hough Transform
     [min_radius, max_radius] = findRadiusBounds(coin_mask);
