@@ -6,7 +6,7 @@
 src_dir = pwd();
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
-I = imread(strcat(data_folder, '1-complex.jpg'));
+I = imread(strcat(data_folder, '2-simple.jpg'));
 
 %% Remove Noisy Background (Coin Mask Generation)
 coin_mask = removeNoisyBackground(I);
