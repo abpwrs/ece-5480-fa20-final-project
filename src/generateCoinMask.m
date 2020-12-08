@@ -23,21 +23,25 @@ function [coin_mask] = generateCoinMask(I)
     I_optithd_inv = imcomplement(I_optithd);
     figure(105); imshow(I_optithd_inv,[]);
 
+    % need opening to sep coins from border before clearing it.
+    I_optithd_inv_opened = activecontour(I_gray, I_optithd_inv);
+    figure(106); imshow(I_optithd_inv_opened,[]);
+    
     % clear border -- decent result, but it doesn't line up with the coin edges that well
-    I_optithd_inv_borderclear = imclearborder(I_optithd_inv);
-    figure(106); imshow(I_optithd_inv_borderclear,[]);
+    I_optithd_inv_borderclear = imclearborder(I_optithd_inv_opened);
+    figure(107); imshow(I_optithd_inv_borderclear,[]);
 
     % coin_mask = I_optithd_inv_borderclear;
 
     % active contour    
     active_contour_fit = activecontour(I_gray, I_optithd_inv_borderclear);
-    figure(107); imshow(active_contour_fit,[]);
+    figure(108); imshow(active_contour_fit,[]);
 
     active_contour_fit_filled = imfill(active_contour_fit, 'holes');
-    figure(108); imshow(active_contour_fit_filled,[]);
+    figure(109); imshow(active_contour_fit_filled,[]);
 
     active_contour_fit_filled_opened = imopen(active_contour_fit_filled, strel('disk', 5));
-    figure(109); imshow(active_contour_fit_filled_opened,[]);
+    figure(110); imshow(active_contour_fit_filled_opened,[]);
 
     %
     areas = struct2array(regionprops(active_contour_fit_filled_opened,'Area'))';
@@ -57,7 +61,7 @@ function [coin_mask] = generateCoinMask(I)
 
     % apply pixel cutoff to bwareaopen
     opened = bwareaopen(active_contour_fit_filled_opened, pixel_cutoff);
-    figure(110); imshow(opened);
+    figure(111); imshow(opened);
 
     coin_mask = opened;
 end

@@ -21,9 +21,10 @@ for file_index=1:length(files)
     end
     
     existing_figures = dir(strcat(figure_dir, '*.png'));
-    figures_exist = numel(existing_figures) == 8
+    figures_exist = numel(existing_figures) == 11
     if ~figures_exist
         try
+            close all;
             done = tmp_part2_func(file_obj, data_folder, figure_dir) ;
         catch exception
             done = 0;
