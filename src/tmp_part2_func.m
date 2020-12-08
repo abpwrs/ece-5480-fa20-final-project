@@ -6,12 +6,13 @@ function [done] = tmp_part2_func(file_obj, data_folder, figure_dir)
     % Remove Noisy Background (Coin Mask Generation)
     is_complex = logical(numel(strfind(file_obj.name, 'complex')));
 
-    if is_complex
-        coin_mask = removeNoisyBackground(I);
-    else
-        coin_mask = generateCoinMaskSimple(I);
-    end
+%     if is_complex
+%         coin_mask = removeNoisyBackground(I);
+%     else
+%         coin_mask = generateCoinMaskSimple(I);
+%     end
 
+    coin_mask = generateCoinMask(I);
     
     f100 = figure(100);
     imshow(coin_mask);
