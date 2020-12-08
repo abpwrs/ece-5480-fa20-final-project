@@ -4,20 +4,88 @@
 
 %% Read in Coin Images
 src_dir = pwd();
-fname = '1-simple_res-05.jpg';
+fname = '2-simple_res-0125.jpg';
 filesep_idx = strfind(src_dir, filesep);
 data_folder = strcat(src_dir(1:filesep_idx(end)), 'data/');
 I = imread(strcat(data_folder, fname));
 is_complex = logical(numel(strfind(fname, 'complex')));
-
+figure(1000);imshow(I)
 %% Remove Noisy Background (Coin Mask Generation)
-if is_complex
-    coin_mask = removeNoisyBackground(I);
-else
-    coin_mask = generateCoinMaskSimple(I);
+% if is_complex
+%     coin_mask = generateCoinMaskComplex(I);
+% else
+%     coin_mask = generateCoinMaskSimple(I);
+% end
+% 
+% coin_mask = generateCoinMask(I);
+% figure(100); imshow(coin_mask, [])
+
+
+
+% all background noise is red and blue. blast those channels with a median
+% filter -- bad bg is also in green channel
+
+% R = I(:,:,1);
+% G = I(:,:,2);
+% B = I(:,:,3);
+% figure(1); imshow(R);
+% figure(2); imshow(G);
+% figure(3); imshow(B);
+% d = 25;
+% R = medfilt2(R, [d d]);
+% B = medfilt2(B, [d d]);
+% figure(4); imshow(R);
+% figure(5); imshow(G);
+% figure(6); imshow(B);
+% I_reproc = cat(3, R, G, B);
+% figure(7);imshow(I_reproc)
+
+%% blur adding
+I_gray = rescale(double(rgb2gray(I)),0,1);
+
+figure(2000); imshow(I_gray,[])'
+%%
+additive_blur_image = zeros(size(I_gray));
+for blur = 1:2:51
+    blur_image = medfilt2(I_gray, [blur blur]);
+    additive_blur_image = additive_blur_image + blur_image;
 end
+%%
 
+figure(1); imshow(additive_blur_image,[]);
+%%
+rescaled_additive_blur = rescale(additive_blur_image,0, 255);
+figure(1); imshow(rescaled_additive_blur,[]);
 
+%% optithd
+I_optithd = optithd(rescaled_additive_blur);
+figure(1); imshow(I_optithd,[]);
+
+%% inv optithd
+I_optithd_inv = imcomplement(I_optithd);
+figure(1); imshow(I_optithd_inv,[]);
+
+%% clear border -- decent result, but it doesn't line up with the coin edges that well
+I_optithd_inv_borderclear = imclearborder(I_optithd_inv);
+figure(1); imshow(I_optithd_inv_borderclear,[]);
+
+% coin_mask = I_optithd_inv_borderclear;
+
+%% active contour
+
+active_contour_fit = activecontour(I_gray, I_optithd_inv_borderclear);
+figure(2); imshow(active_contour_fit,[]);
+
+coin_mask = active_contour_fit;
+%%
+bin_additive_blur = imbinarize(rescaled_additive_blur);
+figure(1); imshow(bin_additive_blur,[]);
+
+%%
+% binarize
+
+% increasingly large opening operators until some condition indicates we
+% start loosing coins
 %% Hough Transform
 [min_radius, max_radius] = findRadiusBounds(coin_mask);
 
