@@ -1,3 +1,5 @@
+Additive blur detection
+Two stage classification radii, radii + RGBHSV
 # IMAGE: ./1-complex
 # ##############################
 # missing coins

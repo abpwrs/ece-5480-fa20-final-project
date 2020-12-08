@@ -1,0 +1,255 @@
+Additive blur detection
+Two stage classification radii, normalized radii + RGBHSV 
+PROBLEMS
+# IMAGE: ./1-complex
+# ##############################
+# missing coins
+n
+# incorrect classification
+y
+# ##############################
+
+
+# IMAGE: ./1-complex_res-0125
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./1-complex_res-025
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./1-complex_res-05
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./1-simple
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./1-simple_res-0125
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./1-simple_res-025
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./1-simple_res-05
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./2-complex
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./2-complex_res-0125
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./2-complex_res-025
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./2-complex_res-05
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./2-simple
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./2-simple_res-0125
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./2-simple_res-025
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./2-simple_res-05
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./3-complex
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./3-complex_res-0125
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./3-complex_res-025
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./3-complex_res-05
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./3-simple
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./3-simple_res-0125
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./3-simple_res-025
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./3-simple_res-05
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./4-complex
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./4-complex_res-0125
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./4-complex_res-025
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
+# IMAGE: ./4-complex_res-05
+# ##############################
+# missing coins
+n
+# incorrect classification
+n
+# ##############################
+
+
