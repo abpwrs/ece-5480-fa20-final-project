@@ -26,7 +26,7 @@ function [coin_mask] = generateCoinMask(I)
     % need opening to sep coins from border before clearing it.
     I_optithd_inv_opened = activecontour(I_gray, I_optithd_inv);
     figure(106); imshow(I_optithd_inv_opened,[]);
-    
+        
     % clear border -- decent result, but it doesn't line up with the coin edges that well
     I_optithd_inv_borderclear = imclearborder(I_optithd_inv_opened);
     figure(107); imshow(I_optithd_inv_borderclear,[]);
@@ -62,6 +62,8 @@ function [coin_mask] = generateCoinMask(I)
     % apply pixel cutoff to bwareaopen
     opened = bwareaopen(active_contour_fit_filled_opened, pixel_cutoff);
     figure(111); imshow(opened);
+
+%     figure(100000); imshowpair(active_contour_fit_filled_opened, opened, "montage");title("Small Mask Deletetion");
 
     coin_mask = opened;
 end
