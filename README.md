@@ -1,4 +1,4 @@
-# ece-5480-fa20
+# ece-5480-fa20 Final Project
 Digital Image Processing Project
 
 ## Part One
